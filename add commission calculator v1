@@ -1,0 +1,99 @@
+import streamlit as st
+
+# ---------------------------------------------------------
+# VERSION 7 — Streamlit Cloud Optimised
+# No local file writing. Log stored in st.session_state
+# Commission Option B (NIL / ILP)
+# ---------------------------------------------------------
+
+st.set_page_config(page_title="Takaful Commission Calculator", page_icon="💹", layout="centered")
+
+st.title("💹 Takaful Commission Calculator (V7)")
+st.caption("Optimised for Streamlit Cloud — NIL & ILP | Commission Structure: Option B")
+
+# ---------------------------------------------------------
+# Ensure session log exists
+# ---------------------------------------------------------
+if "records" not in st.session_state:
+    st.session_state.records = []
+
+# ---------------------------------------------------------
+# Commission Tables — OPTION B
+# ---------------------------------------------------------
+NIL_RATES = {
+    1: 35,
+    2: 10,
+    3: 6,
+    4: 6,
+    5: 6,
+    6: 6
+}
+
+ILP_RATES = {
+    1: 40,
+    2: 15,
+    3: 5,
+    4: 5,
+    5: 5,
+    6: 5
+}
+
+# ---------------------------------------------------------
+# Utility to get commission rate
+# ---------------------------------------------------------
+def get_rate(plan, year):
+    if plan == "NIL":
+        return NIL_RATES.get(year, 0)
+    elif plan == "ILP":
+        return ILP_RATES.get(year, 0)
+    return 0
+
+
+# ---------------------------------------------------------
+# Input Form
+# ---------------------------------------------------------
+st.subheader("Enter Contribution Details")
+
+plan_type = st.selectbox("Plan Type:", ["NIL", "ILP"])
+premium = st.number_input("Annual Contribution (RM)", min_value=0.0, step=50.0)
+year = st.number_input("Commission Year (1–6)", min_value=1, max_value=6, step=1)
+
+# ---------------------------------------------------------
+# Calculate Button
+# ---------------------------------------------------------
+if st.button("Calculate Commission"):
+    rate = get_rate(plan_type, year)
+    commission = premium * (rate / 100)
+
+    st.success("Calculation Successful!")
+
+    st.write("### 📊 Commission Result")
+    st.write(f"**Plan Type:** {plan_type}")
+    st.write(f"**Annual Contribution:** RM {premium:,.2f}")
+    st.write(f"**Year:** {year}")
+    st.write(f"**Commission Rate:** {rate}%")
+    st.write(f"### 💰 Commission Earned: **RM {commission:,.2f}**")
+
+    # save in session state log
+    st.session_state.records.append({
+        "Plan": plan_type,
+        "Premium": premium,
+        "Year": year,
+        "Rate": rate,
+        "Commission": commission
+    })
+
+
+# ---------------------------------------------------------
+# History Section
+# ---------------------------------------------------------
+if st.session_state.records:
+    st.write("---")
+    st.subheader("📁 Calculation History (Session Only)")
+
+    st.dataframe(st.session_state.records, use_container_width=True)
+
+    if st.button("Clear History"):
+        st.session_state.records = []
+        st.experimental_rerun()
+
